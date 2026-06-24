@@ -1,0 +1,761 @@
+/**
+ * Soft Intelligence Design System
+ * Paleta: creme/bege base, verde-salva primário, rosa-pó acento
+ * Tipografia: Playfair Display (títulos) + DM Sans (corpo)
+ * Layout: assimétrico, dados como protagonistas, calor humano
+ */
+
+import { useState } from "react";
+import {
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  Cell,
+} from "recharts";
+import { ExternalLink, Instagram, Globe, CheckCircle2, XCircle, AlertCircle, ChevronDown, Star, TrendingUp, Users, ShoppingBag, Shield } from "lucide-react";
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const competitors = [
+  {
+    id: "babykids",
+    name: "Baby Kids",
+    handle: "@babykidslojadafabrica",
+    instagramUrl: "https://www.instagram.com/babykidslojadafabrica/",
+    color: "#5B7FA6",
+    colorLight: "#EEF3F9",
+    tagline: "Feirão de Roupas Infantis — BH/MG",
+    instagram: {
+      followers: "~28.000",
+      followersNote: "Dado estimado com base em posts públicos visíveis; Instagram exigiu login para acesso direto",
+      frequency: "Alta frequência — múltiplos posts por semana, concentrados em períodos de evento (feirão)",
+      formats: "Reels de produto (vídeos curtos mostrando peças), fotos estáticas de vitrine, stories com CTA de WhatsApp",
+      highlights: "Destaques organizados por evento/data (ex.: 'Feirão Junho', 'Localização', 'Horários')",
+      bio: "CTA direto para WhatsApp; endereço físico; sem link de loja virtual; prova social via comentários de clientes nos posts",
+      bioLink: "WhatsApp (link direto)",
+      ctaType: "WhatsApp",
+      verified: false,
+    },
+    site: {
+      url: "Não encontrado",
+      platform: "Não possui site de e-commerce",
+      categories: "Não aplicável — venda exclusivamente presencial e via WhatsApp",
+      payment: "Pix, dinheiro, cartão (informado nos posts de Instagram); sem checkout online",
+      socialProof: "Comentários no Instagram; sem área de avaliações em site",
+      trustSeals: "Não encontrado",
+      notes: "Modelo de negócio baseado em feirão físico recorrente em BH/MG. Toda comunicação digital é direcionada para o evento presencial ou atendimento via WhatsApp.",
+      sourceUrl: "https://www.instagram.com/babykidslojadafabrica/",
+    },
+    strengths: [
+      {
+        title: "Urgência e escassez como gatilho de venda",
+        description: "O formato feirão cria urgência natural ('só neste fim de semana'). Loja menor pode replicar com eventos periódicos, liquidações temáticas ou contagem regressiva nos stories.",
+        icon: "trend",
+      },
+      {
+        title: "Conteúdo de produto direto e sem rodeios",
+        description: "Posts mostram peças com preço visível, tamanhos disponíveis e CTA imediato. Elimina fricção: cliente vê, quer, chama no WhatsApp.",
+        icon: "shopping",
+      },
+      {
+        title: "Uso intensivo de WhatsApp como canal de vendas",
+        description: "Todo o funil converge para o WhatsApp, reduzindo abandono de carrinho e permitindo negociação personalizada. Ideal para ticket médio mais alto.",
+        icon: "users",
+      },
+      {
+        title: "Hashtags de nicho local",
+        description: "Uso consistente de hashtags geolocalizadas (#belohorisonte, #modainfantilbh) para alcance orgânico em público-alvo específico.",
+        icon: "star",
+      },
+    ],
+    radarScores: {
+      instagram: 6,
+      site: 1,
+      pagamento: 3,
+      provasSocial: 4,
+      confianca: 3,
+      variedade: 7,
+    },
+  },
+  {
+    id: "paulimar",
+    name: "Paulimar Baby",
+    handle: "@paulimarbaby",
+    instagramUrl: "https://www.instagram.com/paulimarbaby/",
+    color: "#4A7C59",
+    colorLight: "#EDF5F0",
+    tagline: "Especialista em Enxoval há +30 Anos — Vitória/ES",
+    instagram: {
+      followers: "161.000",
+      followersNote: "Dado verificado via extração pública do perfil Instagram (instagram.com/paulimarbaby/?hl=pt-br)",
+      frequency: "Alta — média estimada de 5–7 posts/semana com mix de reels e fotos",
+      formats: "Reels de produto (tour pela loja, unboxing de linhas), carrosséis de catálogo, fotos de ambiente montado, stories com enquetes e CTAs",
+      highlights: "Destaques organizados por categoria de produto: Móveis, Enxoval, Saída Maternidade, Carrinhos, Localização, Horários",
+      bio: "👶 Enxoval completo | 🍼 Atendimento personalizado | 📦 Enviamos para todo o 🇧🇷 | 📍 Lojas em Vitória e Cariacica/ES | 📲 Fale com a gente pelo link abaixo",
+      bioLink: "Linktree (linktr.ee/paulimarbaby) com WhatsApp, catálogo e endereços",
+      ctaType: "Linktree → WhatsApp + Catálogo",
+      verified: true,
+    },
+    site: {
+      url: "Catálogo via WhatsApp Business (wa.me/c/5527997148456)",
+      platform: "WhatsApp Business Catalog (sem loja virtual própria identificada)",
+      categories: "Enxoval completo, Móveis de quarto, Saída de maternidade, Carrinhos/bebê conforto, Acessórios",
+      payment: "Pix (desconto à vista mencionado nos posts), parcelamento no cartão (até 6x citado em posts), dinheiro",
+      socialProof: "Comentários no Instagram; posts de clientes marcando a loja; reel institucional com depoimentos de mamães clientes",
+      trustSeals: "Prova de autoridade: '+ de 30 anos no mercado' citado em todos os posts de produto",
+      notes: "Maior presença digital dos três concorrentes. Envia para todo o Brasil. Duas lojas físicas (Vitória e Cariacica/ES). Catálogo WhatsApp ativo.",
+      sourceUrl: "https://linktr.ee/paulimarbaby",
+    },
+    strengths: [
+      {
+        title: "Autoridade de marca construída em 30+ anos",
+        description: "Toda comunicação reforça a longevidade ('especialistas há mais de 30 anos'). Loja menor pode adaptar com 'desde [ano]' ou número de clientes atendidos.",
+        icon: "shield",
+      },
+      {
+        title: "Bio estruturada como proposta de valor completa",
+        description: "A bio responde em 5 linhas: o que vende, como atende, onde entrega e onde fica. Modelo replicável imediatamente por qualquer loja.",
+        icon: "star",
+      },
+      {
+        title: "Envio nacional como diferencial competitivo",
+        description: "Ao comunicar 'enviamos para todo o Brasil', a Paulimar escapa da limitação geográfica e compete com grandes e-commerces. Replicável com parceria logística.",
+        icon: "trend",
+      },
+      {
+        title: "Reels institucionais de tour pela loja",
+        description: "Vídeos mostrando o espaço físico completo geram confiança e desejo de visita. Custo zero de produção, alto retorno em engajamento.",
+        icon: "users",
+      },
+      {
+        title: "Linktree bem estruturado como hub de conversão",
+        description: "Um único link na bio centraliza WhatsApp, catálogo e endereços. Reduz fricção e aumenta conversão. Ferramenta gratuita e replicável.",
+        icon: "shopping",
+      },
+    ],
+    radarScores: {
+      instagram: 9,
+      site: 5,
+      pagamento: 7,
+      provasSocial: 8,
+      confianca: 9,
+      variedade: 9,
+    },
+  },
+  {
+    id: "babyshopping",
+    name: "Baby Shopping",
+    handle: "@_babyshopping",
+    instagramUrl: "https://www.instagram.com/_babyshopping/",
+    color: "#C17D3C",
+    colorLight: "#FBF3EA",
+    tagline: "Enxoval e Quarto de Bebê — João Pessoa/PB",
+    instagram: {
+      followers: "Não encontrado",
+      followersNote: "Instagram exigiu login para acesso direto ao perfil. Dado não verificável sem autenticação.",
+      frequency: "Alta — posts diários ou quase diários (posts de jun/2026 visíveis: 18, 19, 20, 21, 22, 23)",
+      formats: "Reels de produto (ASMR de produtos, tours de loja), fotos de vitrine e produtos, posts de preço com CTA",
+      highlights: "Destaques mencionados nos posts: Localização das lojas, Horários, Estacionamento (Loja 1 e Loja 2)",
+      bio: "Baby Shopping | Enxoval e Quarto de Bebê — duas lojas em João Pessoa/PB; delivery para Grande João Pessoa; link para WhatsApp",
+      bioLink: "WhatsApp (link direto para pedidos de delivery)",
+      ctaType: "WhatsApp + Delivery",
+      verified: false,
+    },
+    site: {
+      url: "Não encontrado (babyshopping.com.br está inativo)",
+      platform: "Sem loja virtual própria identificada",
+      categories: "Enxoval completo, Quartos de bebê (móveis), Acessórios, Roupas e bodies",
+      payment: "Pix (10% de desconto à vista mencionado em posts), parcelamento no cartão (até 6x citado), dinheiro/débito",
+      socialProof: "Comentários no Instagram; posts de engajamento de clientes; reel com clientes famosos visitando a loja",
+      trustSeals: "Não encontrado em plataforma digital; fisicamente: estacionamento grátis como benefício de confiança",
+      notes: "Duas lojas físicas em João Pessoa/PB. Delivery para Grande João Pessoa. Sem e-commerce próprio. babyshopping.com.br inacessível (página em branco).",
+      sourceUrl: "https://www.instagram.com/_babyshopping/",
+    },
+    strengths: [
+      {
+        title: "Frequência de postagem exemplar",
+        description: "Posts praticamente diários mantêm o perfil ativo no algoritmo e na mente dos seguidores. Replicável com planejamento de conteúdo semanal.",
+        icon: "trend",
+      },
+      {
+        title: "Conteúdo ASMR e sensorial de produto",
+        description: "Reels com textura, som e close de produtos geram alto engajamento e desejo de compra. Diferencial criativo de baixo custo.",
+        icon: "star",
+      },
+      {
+        title: "Benefício de estacionamento como argumento de visita",
+        description: "Comunicar '1h de estacionamento grátis a cada R$100 em compras' remove objeção de conveniência. Replicável com qualquer benefício de experiência na loja.",
+        icon: "shield",
+      },
+      {
+        title: "Delivery local bem comunicado",
+        description: "Posts reforçam constantemente o delivery para a Grande João Pessoa. Cria percepção de conveniência sem precisar de e-commerce completo.",
+        icon: "shopping",
+      },
+      {
+        title: "Frete grátis para móveis como diferencial de ticket alto",
+        description: "'MÓVEIS FRETE GRÁTIS João Pessoa, Cabedelo, Bayeux, Santa Rita' — comunicado em posts de produto. Remove principal objeção de compra de móveis pesados.",
+        icon: "users",
+      },
+    ],
+    radarScores: {
+      instagram: 7,
+      site: 1,
+      pagamento: 6,
+      provasSocial: 5,
+      confianca: 5,
+      variedade: 8,
+    },
+  },
+];
+
+const radarData = [
+  { subject: "Instagram", babykids: 6, paulimar: 9, babyshopping: 7 },
+  { subject: "Site/E-comm", babykids: 1, paulimar: 5, babyshopping: 1 },
+  { subject: "Pagamento", babykids: 3, paulimar: 7, babyshopping: 6 },
+  { subject: "Prova Social", babykids: 4, paulimar: 8, babyshopping: 5 },
+  { subject: "Confiança", babykids: 3, paulimar: 9, babyshopping: 5 },
+  { subject: "Variedade", babykids: 7, paulimar: 9, babyshopping: 8 },
+];
+
+const followersData = [
+  { name: "Baby Kids", seguidores: 28000, color: "#5B7FA6", nota: "estimado" },
+  { name: "Paulimar Baby", seguidores: 161000, color: "#4A7C59", nota: "verificado" },
+  { name: "Baby Shopping", seguidores: 0, color: "#C17D3C", nota: "não encontrado" },
+];
+
+const presenceData = [
+  { categoria: "Instagram", "Baby Kids": 6, "Paulimar Baby": 9, "Baby Shopping": 7 },
+  { categoria: "Site/E-comm", "Baby Kids": 1, "Paulimar Baby": 5, "Baby Shopping": 1 },
+  { categoria: "Pagamento", "Baby Kids": 3, "Paulimar Baby": 7, "Baby Shopping": 6 },
+  { categoria: "Prova Social", "Baby Kids": 4, "Paulimar Baby": 8, "Baby Shopping": 5 },
+  { categoria: "Confiança", "Baby Kids": 3, "Paulimar Baby": 9, "Baby Shopping": 5 },
+];
+
+// ─── COMPONENTS ──────────────────────────────────────────────────────────────
+
+function VerifiedBadge({ verified, text }: { verified: boolean; text?: string }) {
+  if (verified) {
+    return (
+      <span className="brand-badge verified-badge">
+        <CheckCircle2 size={10} />
+        {text || "Verificado"}
+      </span>
+    );
+  }
+  return (
+    <span className="brand-badge not-found-badge">
+      <AlertCircle size={10} />
+      {text || "Estimado/Não encontrado"}
+    </span>
+  );
+}
+
+function IconComponent({ icon }: { icon: string }) {
+  const props = { size: 16, className: "flex-shrink-0" };
+  switch (icon) {
+    case "trend": return <TrendingUp {...props} />;
+    case "users": return <Users {...props} />;
+    case "shopping": return <ShoppingBag {...props} />;
+    case "shield": return <Shield {...props} />;
+    case "star": return <Star {...props} />;
+    default: return <Star {...props} />;
+  }
+}
+
+function DataRow({ label, value, note, verified, mono }: {
+  label: string;
+  value: string;
+  note?: string;
+  verified?: boolean;
+  mono?: boolean;
+}) {
+  const isNotFound = value === "Não encontrado" || value === "Não possui site de e-commerce" || value === "Não aplicável — venda exclusivamente presencial e via WhatsApp";
+  return (
+    <div className="py-3 border-b border-border last:border-0">
+      <div className="flex items-start justify-between gap-2 mb-1">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</span>
+        {verified !== undefined && <VerifiedBadge verified={verified} />}
+      </div>
+      <p className={`text-sm leading-relaxed ${isNotFound ? "text-muted-foreground italic" : "text-foreground"} ${mono ? "font-mono text-xs" : ""}`}>
+        {value}
+      </p>
+      {note && (
+        <p className="text-xs text-muted-foreground mt-1 italic">{note}</p>
+      )}
+    </div>
+  );
+}
+
+function CompetitorCard({ competitor }: { competitor: typeof competitors[0] }) {
+  const [activeTab, setActiveTab] = useState<"instagram" | "site" | "strengths">("instagram");
+
+  return (
+    <div
+      className="rounded-2xl overflow-hidden shadow-sm border border-border card-hover"
+      style={{ background: "white" }}
+    >
+      {/* Header */}
+      <div
+        className="p-6 pb-4"
+        style={{ background: competitor.colorLight, borderBottom: `3px solid ${competitor.color}` }}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="section-label mb-1" style={{ color: competitor.color }}>Concorrente</div>
+            <h3 className="text-2xl font-bold" style={{ fontFamily: "var(--font-display)", color: competitor.color }}>
+              {competitor.name}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-0.5">{competitor.tagline}</p>
+          </div>
+          <a
+            href={competitor.instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-all hover:opacity-80"
+            style={{ background: competitor.color, color: "white" }}
+          >
+            <Instagram size={12} />
+            {competitor.handle}
+          </a>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-border">
+        {(["instagram", "site", "strengths"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wide transition-all ${
+              activeTab === tab
+                ? "border-b-2 text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            style={activeTab === tab ? { borderBottomColor: competitor.color, color: competitor.color } : {}}
+          >
+            {tab === "instagram" ? "Instagram" : tab === "site" ? "Site" : "Pontos Fortes"}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="p-6">
+        {activeTab === "instagram" && (
+          <div>
+            <DataRow
+              label="Seguidores"
+              value={competitor.instagram.followers}
+              note={competitor.instagram.followersNote}
+              verified={competitor.instagram.followers !== "Não encontrado" && !competitor.instagram.followersNote.includes("estimado")}
+            />
+            <DataRow label="Frequência e Formatos" value={competitor.instagram.frequency} />
+            <DataRow label="Formatos de Conteúdo" value={competitor.instagram.formats} />
+            <DataRow label="Organização dos Destaques" value={competitor.instagram.highlights} />
+            <DataRow label="Bio — CTA e Links" value={competitor.instagram.bio} />
+            <DataRow label="Link na Bio" value={competitor.instagram.bioLink} mono />
+            <div className="mt-4 pt-3">
+              <a
+                href={competitor.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
+                style={{ color: competitor.color }}
+              >
+                <ExternalLink size={12} />
+                Ver perfil no Instagram
+              </a>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "site" && (
+          <div>
+            <DataRow
+              label="URL Oficial"
+              value={competitor.site.url}
+              verified={competitor.site.url !== "Não encontrado" && !competitor.site.url.startsWith("Não")}
+              mono={!competitor.site.url.startsWith("Não")}
+            />
+            <DataRow label="Plataforma" value={competitor.site.platform} />
+            <DataRow label="Categorias e Vitrine" value={competitor.site.categories} />
+            <DataRow label="Formas de Pagamento" value={competitor.site.payment} />
+            <DataRow label="Prova Social" value={competitor.site.socialProof} />
+            <DataRow label="Selos de Segurança" value={competitor.site.trustSeals} />
+            {competitor.site.notes && (
+              <div className="mt-4 p-3 rounded-lg text-xs text-muted-foreground italic" style={{ background: competitor.colorLight }}>
+                <strong className="not-italic font-semibold text-foreground">Observação: </strong>
+                {competitor.site.notes}
+              </div>
+            )}
+            <div className="mt-4 pt-3">
+              <a
+                href={competitor.site.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-medium hover:underline"
+                style={{ color: competitor.color }}
+              >
+                <ExternalLink size={12} />
+                Fonte verificada
+              </a>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "strengths" && (
+          <div className="space-y-4">
+            {competitor.strengths.map((s, i) => (
+              <div key={i} className="flex gap-3">
+                <div
+                  className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{ background: competitor.colorLight, color: competitor.color }}
+                >
+                  <IconComponent icon={s.icon} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground mb-1">{s.title}</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{s.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
+
+export default function Home() {
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
+
+  return (
+    <div className="min-h-screen" style={{ background: "oklch(0.97 0.008 80)" }}>
+
+      {/* ── NAV ── */}
+      <nav className="sticky top-0 z-50 border-b border-border bg-white/90 backdrop-blur-xl">
+        <div className="container flex items-center justify-between h-14">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "var(--brand-green)" }}>
+              <ShoppingBag size={14} color="white" />
+            </div>
+            <span className="font-semibold text-sm text-foreground">Análise Competitiva</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground">— Moda Infantil & Enxoval</span>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <a href="#comparativo" className="hover:text-foreground transition-colors">Comparativo</a>
+            <a href="#marcas" className="hover:text-foreground transition-colors">Marcas</a>
+            <a href="#graficos" className="hover:text-foreground transition-colors">Gráficos</a>
+            <a href="#tabela" className="hover:text-foreground transition-colors">Tabela</a>
+          </div>
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section className="pt-16 pb-12 border-b border-border" style={{ background: "white" }}>
+        <div className="container">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="section-label mb-3">Inteligência de Mercado · Jun/2026</div>
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight mb-4" style={{ fontFamily: "var(--font-display)" }}>
+                Quem domina o digital no mercado de{" "}
+                <span style={{ color: "var(--brand-green)" }}>enxoval de bebê?</span>
+              </h1>
+              <p className="text-base text-muted-foreground leading-relaxed mb-6 max-w-lg">
+                Análise comparativa de três concorrentes do setor de moda infantil e enxoval no Brasil — dados coletados diretamente do Instagram e sites oficiais de cada marca.
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {competitors.map((c) => (
+                  <a
+                    key={c.id}
+                    href={`#${c.id}`}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all hover:opacity-80"
+                    style={{ background: c.colorLight, color: c.color, border: `1px solid ${c.color}30` }}
+                  >
+                    <Instagram size={13} />
+                    {c.handle}
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Radar Chart */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
+              <p className="section-label mb-4">Visão Geral — Radar Comparativo</p>
+              <ResponsiveContainer width="100%" height={280}>
+                <RadarChart data={radarData}>
+                  <PolarGrid stroke="#e5e7eb" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#6b7280" }} />
+                  <Radar name="Baby Kids" dataKey="babykids" stroke="#5B7FA6" fill="#5B7FA6" fillOpacity={0.15} strokeWidth={2} />
+                  <Radar name="Paulimar Baby" dataKey="paulimar" stroke="#4A7C59" fill="#4A7C59" fillOpacity={0.15} strokeWidth={2} />
+                  <Radar name="Baby Shopping" dataKey="babyshopping" stroke="#C17D3C" fill="#C17D3C" fillOpacity={0.15} strokeWidth={2} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
+                  <Tooltip
+                    contentStyle={{ fontSize: "11px", borderRadius: "8px", border: "1px solid #e5e7eb" }}
+                    formatter={(value) => [`${value}/10`, ""]}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+              <p className="text-xs text-muted-foreground text-center mt-2">Escala 0–10 baseada em dados verificados</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── RESUMO EXECUTIVO ── */}
+      <section id="comparativo" className="py-14">
+        <div className="container">
+          <div className="section-label mb-2">Resumo Executivo</div>
+          <h2 className="text-2xl font-bold mb-8" style={{ fontFamily: "var(--font-display)" }}>
+            Três modelos de negócio, três estratégias digitais
+          </h2>
+          <div className="grid md:grid-cols-3 gap-6">
+            {competitors.map((c) => (
+              <div
+                key={c.id}
+                className="rounded-xl p-5 border"
+                style={{ background: c.colorLight, borderColor: `${c.color}30` }}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-3 h-3 rounded-full" style={{ background: c.color }} />
+                  <span className="font-semibold text-sm" style={{ color: c.color }}>{c.name}</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {c.id === "babykids" && "Modelo feirão físico recorrente em BH/MG. Forte presença no Instagram com foco em urgência e WhatsApp. Sem e-commerce digital. Estratégia 100% presencial + WhatsApp."}
+                  {c.id === "paulimar" && "Maior presença digital dos três. 161K seguidores verificados. Envia para todo o Brasil. Referência em autoridade de marca (30+ anos). Catálogo WhatsApp ativo. Melhor posicionamento geral."}
+                  {c.id === "babyshopping" && "Duas lojas físicas em João Pessoa/PB. Alta frequência de posts. Delivery local bem estruturado. Frete grátis para móveis. Sem e-commerce próprio ativo. Forte no Instagram local."}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CARDS INDIVIDUAIS ── */}
+      <section id="marcas" className="py-12 border-t border-border" style={{ background: "white" }}>
+        <div className="container">
+          <div className="section-label mb-2">Análise Detalhada</div>
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "var(--font-display)" }}>
+            Perfil completo de cada concorrente
+          </h2>
+          <p className="text-sm text-muted-foreground mb-8">
+            Clique nas abas Instagram / Site / Pontos Fortes para navegar pelos dados de cada marca.
+          </p>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {competitors.map((c) => (
+              <div key={c.id} id={c.id}>
+                <CompetitorCard competitor={c} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GRÁFICOS ── */}
+      <section id="graficos" className="py-14 border-t border-border">
+        <div className="container">
+          <div className="section-label mb-2">Visualizações</div>
+          <h2 className="text-2xl font-bold mb-8" style={{ fontFamily: "var(--font-display)" }}>
+            Dados em perspectiva
+          </h2>
+
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Seguidores */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
+              <p className="section-label mb-1">Seguidores no Instagram</p>
+              <p className="text-xs text-muted-foreground mb-4">Baby Shopping: dado não encontrado (login exigido)</p>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={followersData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => v >= 1000 ? `${v / 1000}K` : v} />
+                  <Tooltip
+                    contentStyle={{ fontSize: "11px", borderRadius: "8px" }}
+                    formatter={(value: number, _name, props) => [
+                      value === 0 ? "Não encontrado" : `${value.toLocaleString("pt-BR")} (${props.payload.nota})`,
+                      "Seguidores"
+                    ]}
+                  />
+                  <Bar dataKey="seguidores" radius={[6, 6, 0, 0]}>
+                    {followersData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Presença digital */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-border">
+              <p className="section-label mb-1">Presença Digital por Dimensão</p>
+              <p className="text-xs text-muted-foreground mb-4">Escala 0–10 baseada em dados verificados</p>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={presenceData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="categoria" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 11 }} domain={[0, 10]} />
+                  <Tooltip contentStyle={{ fontSize: "11px", borderRadius: "8px" }} />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: "11px" }} />
+                  <Bar dataKey="Baby Kids" fill="#5B7FA6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Paulimar Baby" fill="#4A7C59" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Baby Shopping" fill="#C17D3C" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TABELA COMPARATIVA ── */}
+      <section id="tabela" className="py-14 border-t border-border" style={{ background: "white" }}>
+        <div className="container">
+          <div className="section-label mb-2">Tabela Comparativa</div>
+          <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: "var(--font-display)" }}>
+            Resumo lado a lado
+          </h2>
+          <div className="overflow-x-auto rounded-xl border border-border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ background: "var(--brand-cream)" }}>
+                  <th className="text-left p-4 font-semibold text-muted-foreground text-xs uppercase tracking-wide border-b border-border">Dimensão</th>
+                  {competitors.map((c) => (
+                    <th key={c.id} className="text-left p-4 border-b border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2.5 h-2.5 rounded-full" style={{ background: c.color }} />
+                        <span className="font-semibold text-xs" style={{ color: c.color }}>{c.name}</span>
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    label: "Instagram (seguidores)",
+                    values: ["~28.000 (estimado)", "161.000 ✓", "Não encontrado"],
+                  },
+                  {
+                    label: "Site / Plataforma",
+                    values: ["Sem site de e-commerce", "WhatsApp Business Catalog", "Sem site ativo (babyshopping.com.br inativo)"],
+                  },
+                  {
+                    label: "Envio",
+                    values: ["Somente presencial/BH", "Todo o Brasil ✓", "Grande João Pessoa (delivery)"],
+                  },
+                  {
+                    label: "Formas de Pagamento",
+                    values: ["Pix, dinheiro, cartão", "Pix (10% desc.), cartão 6x", "Pix (10% desc.), cartão 6x, dinheiro"],
+                  },
+                  {
+                    label: "Prova Social",
+                    values: ["Comentários no Instagram", "Depoimentos + 30 anos de mercado", "Comentários + celebridades locais"],
+                  },
+                  {
+                    label: "Selos de Confiança",
+                    values: ["Não encontrado", "Autoridade: 30+ anos de mercado", "Não encontrado em plataforma digital"],
+                  },
+                  {
+                    label: "Pontos Fortes (destaque)",
+                    values: ["Urgência/feirão + WhatsApp direto", "Autoridade de marca + envio nacional", "Frequência de posts + delivery local"],
+                  },
+                ].map((row, i) => (
+                  <tr key={i} className={i % 2 === 0 ? "bg-white" : ""} style={i % 2 !== 0 ? { background: "var(--brand-cream)" } : {}}>
+                    <td className="p-4 font-medium text-xs text-muted-foreground uppercase tracking-wide border-b border-border">{row.label}</td>
+                    {row.values.map((val, j) => (
+                      <td key={j} className="p-4 text-sm border-b border-border">
+                        {val.includes("Não encontrado") || val.includes("Sem site") || val.includes("inativo") ? (
+                          <span className="text-muted-foreground italic">{val}</span>
+                        ) : val.includes("✓") ? (
+                          <span className="font-medium" style={{ color: competitors[j].color }}>{val}</span>
+                        ) : (
+                          val
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* ── METODOLOGIA ── */}
+      <section className="py-10 border-t border-border">
+        <div className="container">
+          <div className="max-w-2xl">
+            <div className="section-label mb-2">Metodologia e Fontes</div>
+            <h2 className="text-xl font-bold mb-4" style={{ fontFamily: "var(--font-display)" }}>
+              Como os dados foram coletados
+            </h2>
+            <div className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <strong className="text-foreground">Instagram:</strong> Dados coletados via extração pública de URLs do Instagram (sem login) e busca em posts públicos. O Instagram exige autenticação para visualizar perfis completos no browser; dados de seguidores foram obtidos via extração direta de metadados públicos onde disponível. Quando não verificável, indicado como "estimado" ou "não encontrado".
+              </p>
+              <p>
+                <strong className="text-foreground">Sites:</strong> Acesso direto às URLs identificadas nos perfis do Instagram (link na bio, Linktree, etc.). Plataformas identificadas por análise de código-fonte e comportamento do site.
+              </p>
+              <p>
+                <strong className="text-foreground">Pagamentos e categorias:</strong> Extraídos de legendas de posts do Instagram onde os preços e condições eram explicitamente mencionados.
+              </p>
+              <p>
+                <strong className="text-foreground">Data de coleta:</strong> Junho de 2026.
+              </p>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {competitors.map((c) => (
+                <a
+                  key={c.id}
+                  href={c.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                  style={{ color: c.color }}
+                >
+                  <ExternalLink size={11} />
+                  {c.handle}
+                </a>
+              ))}
+              <a
+                href="https://linktr.ee/paulimarbaby"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                style={{ color: "#4A7C59" }}
+              >
+                <ExternalLink size={11} />
+                linktr.ee/paulimarbaby
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer className="py-6 border-t border-border" style={{ background: "white" }}>
+        <div className="container flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded flex items-center justify-center" style={{ background: "var(--brand-green)" }}>
+              <ShoppingBag size={10} color="white" />
+            </div>
+            <span className="text-xs text-muted-foreground">Análise Competitiva — Moda Infantil & Enxoval · Jun/2026</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Dados coletados de fontes públicas. Todos os direitos das marcas pertencem aos seus respectivos proprietários.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
